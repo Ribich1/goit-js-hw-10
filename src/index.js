@@ -1,5 +1,6 @@
 import { fetchBreeds, fetchCatByBreed, getCatImg } from './cat-api';
 import SlimSelect from 'slim-select';
+import Notiflix from 'notiflix';
 
 // fetchBreeds().then(result => getId(result)).then(res => console.log(res));
 // fetchBreeds().then(result => console.log(result));
@@ -100,7 +101,7 @@ function show(el) {
 }
 
 function onError(err) {
-  console.error(err);
+  Notiflix.Notify.warning(err);
   hide(refs.loader);
   show(refs.error);
 }
