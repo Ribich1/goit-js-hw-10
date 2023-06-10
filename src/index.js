@@ -1,6 +1,9 @@
 import { fetchBreeds } from "./cat-api";
+import { fetchCatByBreed } from "./cat-api";
+import { getCatImg } from "./cat-api";
 
-fetchBreeds().then(result => console.log(result));
+// fetchBreeds().then(result => getId(result)).then(res => console.log(res));
+// fetchBreeds().then(result => console.log(result));
 
 /*
 1. отримати рефс
@@ -19,5 +22,47 @@ fetchBreeds().then(result => console.log(result));
 */
 
 const refs = {
-    select: document.querySelector('.breed-select'),
+    selectEl: document.querySelector(".breed-select"),
+    divEl: document.querySelector(".cat-info"),
 }
+
+fetchBreeds().then(
+    (arrays) => {
+        return arrays.reduce((markup, array) => markup + createMarkupSelect(array), " ");
+    }
+).then(updateMarkupSelect);
+
+refs.selectEl.addEventListener('change', onChange);
+
+function onChange(e) {
+    e.preventDefault();
+    const id = e.target.value;
+    getCatImg(`${id}`).then(createMarkupDiv).then(updateMarkupDiv);
+    fetchCatByBreed(`${id}`).then(arr => createMarkupText(arr)).then(updateMarkupDiv);
+}
+
+fetchCatByBreed('abob').then(console.log);
+getCatImg('abob').then(console.log);
+
+
+function createMarkupDiv(url) {
+    return `<img src="${url}" width="520px"/>`;    
+};
+
+function createMarkupText({ name, description, temperament }) {
+    return `<h2>${name}</h2><p>${description}</p><p><strong>Temperament: </strong>${temperament}</p>`;
+};
+
+function updateMarkupDiv(markup) {
+    refs.divEl.insertAdjacentHTML("beforeend", markup);
+}
+
+function createMarkupSelect({id, name}) {
+        return `<option value="${id}">${name}</option>`;
+};
+
+function updateMarkupSelect(markup) {
+    refs.selectEl.innerHTML = markup;
+};
+
+fetchBreeds().then(console.log);
