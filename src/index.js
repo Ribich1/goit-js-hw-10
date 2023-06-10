@@ -1,6 +1,5 @@
-import { fetchBreeds } from "./cat-api";
-import { fetchCatByBreed } from "./cat-api";
-import { getCatImg } from "./cat-api";
+import { fetchBreeds, fetchCatByBreed, getCatImg } from './cat-api';
+import SlimSelect from 'slim-select';
 
 // fetchBreeds().then(result => getId(result)).then(res => console.log(res));
 // fetchBreeds().then(result => console.log(result));
@@ -22,47 +21,87 @@ import { getCatImg } from "./cat-api";
 */
 
 const refs = {
-    selectEl: document.querySelector(".breed-select"),
-    divEl: document.querySelector(".cat-info"),
-}
+  selectEl: document.querySelector('.breed-select'),
+  divEl: document.querySelector('.cat-info'),
+  loader: document.querySelector('.loader'),
+  error: document.querySelector('.error'),
+};
 
-fetchBreeds().then(
-    (arrays) => {
-        return arrays.reduce((markup, array) => markup + createMarkupSelect(array), " ");
-    }
-).then(updateMarkupSelect);
+hide(refs.selectEl);
+hide(refs.error);
+
+fetchBreeds()
+  .then(arrays => {
+    return arrays.reduce(
+      (markup, array) => markup + createMarkupSelect(array),
+      ' '
+    );
+  })
+  .then(updateMarkupSelect)
+  .then(() => {
+    show(refs.selectEl);
+    hide(refs.loader);
+  })
+
+  .catch(onError);
+// (err) => onError(err)
 
 refs.selectEl.addEventListener('change', onChange);
 
 function onChange(e) {
-    e.preventDefault();
-    const id = e.target.value;
-    getCatImg(`${id}`).then(createMarkupDiv).then(updateMarkupDiv);
-    fetchCatByBreed(`${id}`).then(arr => createMarkupText(arr)).then(updateMarkupDiv);
+  e.preventDefault();
+  clearMarkupDiv();
+  const id = e.target.value;
+  show(refs.loader);
+  hide(refs.divEl);
+  getCatImg(id).then(createMarkupDiv).then(updateMarkupDiv).catch(onError);
+  fetchCatByBreed(id)
+    .then(arr => createMarkupText(arr))
+    .then(updateMarkupDiv)
+    .then(() => {
+      hide(refs.loader);
+      show(refs.divEl);
+    })
+    .catch(onError);
 }
-
-fetchCatByBreed('abob').then(console.log);
-getCatImg('abob').then(console.log);
-
 
 function createMarkupDiv(url) {
-    return `<img src="${url}" width="520px"/>`;    
-};
-
-function createMarkupText({ name, description, temperament }) {
-    return `<h2>${name}</h2><p>${description}</p><p><strong>Temperament: </strong>${temperament}</p>`;
-};
-
-function updateMarkupDiv(markup) {
-    refs.divEl.insertAdjacentHTML("beforeend", markup);
+  return `<img src="${url}" width="520px"/>`;
 }
 
-function createMarkupSelect({id, name}) {
-        return `<option value="${id}">${name}</option>`;
-};
+function createMarkupText({ name, description, temperament }) {
+  return `<h2>${name}</h2><p>${description}</p><p><strong>Temperament: </strong>${temperament}</p>`;
+}
+
+function updateMarkupDiv(markup) {
+  refs.divEl.insertAdjacentHTML('beforeend', markup);
+}
+
+function clearMarkupDiv() {
+  refs.divEl.innerHTML = '';
+}
+
+function createMarkupSelect({ id, name }) {
+  return `<option value="${id}">${name}</option>`;
+}
 
 function updateMarkupSelect(markup) {
-    refs.selectEl.innerHTML = markup;
-};
+  refs.selectEl.innerHTML = markup;
+  new SlimSelect({
+    select: '.breed-select',
+  });
+}
 
+function hide(el) {
+  el.classList.add('hide');
+}
+function show(el) {
+  el.classList.remove('hide');
+}
+
+function onError(err) {
+  console.error(err);
+  hide(refs.loader);
+  show(refs.error);
+}
 fetchBreeds().then(console.log);
